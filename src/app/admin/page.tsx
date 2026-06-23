@@ -54,6 +54,12 @@ export default function AdminPage() {
     if (res.ok) setReviews(reviews.filter(r => r.id !== id))
   }
 
+  async function deleteModel(id: number) {
+    if (!confirm('Delete this model and all its reviews?')) return
+    const res = await authedFetch(`/api/models/${id}`, { method: 'DELETE' })
+    if (res.ok) setModels(models.filter(m => m.id !== id))
+  }
+
   const totalReviews = reviews.length
   const totalModels = models.length
 
@@ -175,7 +181,10 @@ export default function AdminPage() {
                       <span className="text-sm font-semibold text-slate-700">{m.review_count}</span>
                     </td>
                     <td className="px-5 py-3.5">
-                      <Link href={`/models/${m.id}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View →</Link>
+                      <div className="flex items-center gap-2">
+                        <Link href={`/models/${m.id}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View</Link>
+                        <button onClick={() => deleteModel(m.id)} className="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
