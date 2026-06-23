@@ -44,41 +44,41 @@ export default async function ModelDetailPage({ params }: Props) {
 
   return (
     <div>
-      <div className="mb-2">
-        <Link href="/" className="inline-flex items-center gap-1 text-sm text-slate-400 hover:text-slate-600 transition-colors">
-          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+      <div className="mb-4">
+        <Link href="/" className="inline-flex items-center gap-1.5 text-xs font-bold uppercase tracking-wider text-slate-500 hover:text-slate-300 transition-colors">
+          <svg className="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 19.5L8.25 12l7.5-7.5" />
           </svg>
           Back to models
         </Link>
       </div>
 
-      <div className="relative overflow-hidden rounded-2xl bg-white border border-slate-200/70 p-6 sm:p-8 mb-8">
-        <div className={`absolute top-0 left-0 right-0 h-1.5 bg-linear-to-r ${gradient}`} />
-        <div className="flex flex-col sm:flex-row sm:items-start gap-5">
-          <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center text-white font-bold text-xl shrink-0 shadow-sm`}>
+      <div className="relative overflow-hidden rounded-3xl glass-card border-slate-800 p-6 sm:p-8 mb-8 shadow-2xl">
+        <div className={`absolute top-0 left-0 right-0 h-1 bg-linear-to-r ${gradient}`} />
+        <div className="flex flex-col sm:flex-row sm:items-center gap-6">
+          <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${gradient} flex items-center justify-center text-white font-black text-2xl shrink-0 shadow-lg`}>
             {model.provider.charAt(0).toUpperCase()}
           </div>
           <div className="flex-1 min-w-0">
-            <h1 className="text-2xl sm:text-3xl font-bold text-slate-900">{model.name}</h1>
+            <h1 className="text-2xl sm:text-3xl font-black text-white tracking-tight">{model.name}</h1>
             <div className="flex flex-wrap items-center gap-3 mt-2">
-              <span className="text-sm font-medium text-slate-500">{model.provider}</span>
-              <span className="text-slate-300 text-sm">·</span>
-              <span className="text-sm text-slate-500">{model.category}</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-slate-450 bg-slate-900 px-2.5 py-1 rounded-md border border-slate-850">{model.provider}</span>
+              <span className="text-slate-700 text-sm">·</span>
+              <span className="text-xs font-bold uppercase tracking-wider text-indigo-400 bg-indigo-500/10 px-2.5 py-1 rounded-md border border-indigo-500/10">{model.category}</span>
               {reviews && reviews.length > 0 && (
                 <>
-                  <span className="text-slate-300 text-sm">·</span>
-                  <div className="flex items-center gap-1.5">
-                    <svg className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 24 24">
+                  <span className="text-slate-700 text-sm">·</span>
+                  <div className="flex items-center gap-2">
+                    <svg className="w-4 h-4 text-amber-500" fill="currentColor" viewBox="0 0 24 24">
                       <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
                     </svg>
-                    <span className="text-sm font-semibold text-slate-700">{avgRating}</span>
-                    <span className="text-sm text-slate-400">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
+                    <span className="text-sm font-extrabold text-white">{avgRating}</span>
+                    <span className="text-xs text-slate-500 font-semibold">({reviews.length} {reviews.length === 1 ? 'review' : 'reviews'})</span>
                   </div>
                 </>
               )}
             </div>
-            {model.description && <p className="text-slate-600 mt-3 max-w-2xl leading-relaxed">{model.description}</p>}
+            {model.description && <p className="text-slate-400 text-sm mt-4 max-w-3xl leading-relaxed">{model.description}</p>}
           </div>
         </div>
       </div>

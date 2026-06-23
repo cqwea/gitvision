@@ -16,7 +16,8 @@ export async function POST(request: Request) {
     pros: body.pros || null,
     cons: body.cons || null,
     author: body.author || null,
-  }).select().single() as { data: Record<string, unknown> | null; error: { message: string } | null }
+    author_token: body.author_token || null,
+  }).select().single() as unknown as { data: Record<string, unknown> | null; error: { message: string } | null }
 
   if (error) return Response.json({ error: error.message }, { status: 400 })
   return Response.json(data, { status: 201 })
@@ -39,9 +40,7 @@ export async function GET(request: Request) {
       .order('created_at', { ascending: false }) as { data: any[] | null }
 
     const result = (reviews || []).map((r: any) => ({
-      ...r,
-      model_name: r.models?.name || null,
-      models: undefined,
+      ...r, model_name: r.models?.name || null, models: undefined,
     }))
 
     return Response.json(result)

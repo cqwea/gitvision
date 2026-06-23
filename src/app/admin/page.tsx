@@ -12,7 +12,7 @@ export default function AdminPage() {
   const [error, setError] = useState('')
   const [models, setModels] = useState<Model[]>([])
   const [reviews, setReviews] = useState<Review[]>([])
-  const [tab, setTab] = useState<'models' | 'reviews'>('models')
+  const [tab, setTab] = useState<'models' | 'reviews' | 'analytics'>('models')
 
   useEffect(() => {
     const saved = localStorage.getItem('admin_token')
@@ -25,7 +25,7 @@ export default function AdminPage() {
 
   useEffect(() => {
     if (!token) return
-    fetch('/api/models').then(r => r.json()).then(setModels)
+    fetch('/api/models?limit=100').then(r => r.json()).then(d => setModels(d.models || d))
     authedFetch('/api/reviews?all=true').then(r => r.json()).then(setReviews).catch(() => {})
   }, [token, authedFetch])
 
@@ -154,9 +154,15 @@ export default function AdminPage() {
           className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'reviews' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
           Reviews ({totalReviews})
         </button>
+        <button onClick={() => setTab('analytics')}
+          className={`px-4 py-2 rounded-lg text-sm font-semibold transition-all ${tab === 'analytics' ? 'bg-white text-slate-900 shadow-sm' : 'text-slate-500 hover:text-slate-700'}`}>
+          Analytics
+        </button>
       </div>
 
-      {tab === 'models' ? (
+      {tab === 'analytics' ? (
+        <AnalyticsTab models={models} reviews={reviews} />
+      ) : tab === 'models' ? (
         <div className="bg-white rounded-2xl border border-slate-200/70 overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full text-sm">
@@ -183,6 +189,7 @@ export default function AdminPage() {
                     <td className="px-5 py-3.5">
                       <div className="flex items-center gap-2">
                         <Link href={`/models/${m.id}`} className="text-indigo-600 hover:text-indigo-800 text-xs font-semibold">View</Link>
+                        <Link href={`/admin/models/${m.id}`} className="text-amber-600 hover:text-amber-800 text-xs font-semibold">Edit</Link>
                         <button onClick={() => deleteModel(m.id)} className="text-rose-500 hover:text-rose-700 text-xs font-semibold">Delete</button>
                       </div>
                     </td>
@@ -232,6 +239,86 @@ export default function AdminPage() {
           </div>
         </div>
       )}
+    </div>
+  )
+}
+
+function AnalyticsTab({ models, reviews }: { models: Model[]; reviews: Review[] }) {
+  const ratingDist = [0, 0, 0, 0, 0]
+  reviews.forEach(r => { if (r.rating >= 1 && r.rating <= 5) ratingDist[r.rating - 1]++ })
+  const maxDist = Math.max(...ratingDist, 1)
+
+  const catCounts: Record<string, number> = {}
+  models.forEach(m => { catCounts[m.category] = (catCounts[m.category] || 0) + 1 })
+
+  const avgRating = reviews.length > 0 ? Math.round((reviews.reduce((s, r) => s + r.rating, 0) / reviews.length) * 10) / 10 : 0
+
+  return (
+    <div className="space-y-6">
+      <div className="grid grid-cols-3 gap-4">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+          <div className="text-2xl font-bold text-slate-900">{avgRating.toFixed(1)}</div>
+          <div className="text-xs text-slate-500 font-medium">Average Rating</div>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+          <div className="text-2xl font-bold text-slate-900">{reviews.length}</div>
+          <div className="text-xs text-slate-500 font-medium">Total Reviews</div>
+        </div>
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+          <div className="text-2xl font-bold text-slate-900">{models.length}</div>
+          <div className="text-xs text-slate-500 font-medium">Total Models</div>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-2 gap-6">
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+          <h3 className="font-semibold text-slate-900 mb-4">Rating Distribution</h3>
+          <div className="space-y-2">
+            {[5, 4, 3, 2, 1].map(star => (
+              <div key={star} className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-500 w-4">{star}</span>
+                <svg className="w-4 h-4 text-amber-400 shrink-0" fill="currentColor" viewBox="0 0 24 24"><path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" /></svg>
+                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-amber-400 rounded-full transition-all" style={{ width: `${(ratingDist[star - 1] / maxDist) * 100}%` }} />
+                </div>
+                <span className="text-sm text-slate-500 w-8 text-right">{ratingDist[star - 1]}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+          <h3 className="font-semibold text-slate-900 mb-4">Models by Category</h3>
+          <div className="space-y-2">
+            {Object.entries(catCounts).sort((a, b) => b[1] - a[1]).map(([cat, count]) => (
+              <div key={cat} className="flex items-center gap-3">
+                <span className="text-sm font-medium text-slate-600 w-16">{cat}</span>
+                <div className="flex-1 h-3 bg-slate-100 rounded-full overflow-hidden">
+                  <div className="h-full bg-indigo-400 rounded-full transition-all" style={{ width: `${(count / Math.max(...Object.values(catCounts))) * 100}%` }} />
+                </div>
+                <span className="text-sm text-slate-500 w-8 text-right">{count}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white rounded-2xl border border-slate-200/70 p-5">
+        <h3 className="font-semibold text-slate-900 mb-4">Top Rated Models</h3>
+        {models.length === 0 ? (
+          <p className="text-sm text-slate-400">No data</p>
+        ) : (
+          <div className="space-y-3">
+            {[...models].sort((a, b) => b.review_count - a.review_count).slice(0, 10).map(m => (
+              <div key={m.id} className="flex items-center gap-3">
+                <span className="text-sm font-semibold text-slate-900 flex-1">{m.name}</span>
+                <span className="text-xs text-slate-400">{m.provider}</span>
+                <span className="text-sm font-semibold text-slate-700 w-16 text-right">{m.review_count} reviews</span>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   )
 }
