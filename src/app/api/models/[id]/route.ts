@@ -1,16 +1,17 @@
-import { supabase } from '@/lib/supabase'
+import { getSupabase } from '@/lib/supabase'
 
 export async function GET(
   _request: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
+  const supabase = getSupabase()
   const { id } = await params
 
   const { data: model } = await supabase
     .from('models')
     .select('*')
     .eq('id', Number(id))
-    .single()
+    .single() as { data: Record<string, unknown> | null }
 
   if (!model) {
     return Response.json({ error: 'Not found' }, { status: 404 })
